@@ -1,52 +1,58 @@
-use crate::errors::CalrlError;
 use std::{iter::Peekable, str::CharIndices};
 
 const OPS: &str = "+-/*";
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub enum Token {
     Number(String),
     Operator(String),
-    Equals(String),
+    Equals,
     ParanStart,
     ParanEnd,
-    Eol,
 }
 
 #[derive(Debug)]
-pub struct Scanner {
+pub struct Scanner<'a> {
+    src: &'a str,
     pos: usize,
-    src: &'static str,
-    chars: Peekable<CharIndices<'static>>,
+    chars: Peekable<CharIndices<'a>>,
 }
 
-impl Scanner {
-    pub fn new(src: &'static str) -> Self {
+impl<'a> Scanner<'a> {
+    pub fn new(src: &'a str) -> Self {
         let mut chars = src.char_indices().peekable();
+
         Self {
-            pos: chars.peek().map(|(x, _)| *x).unwrap_or_default(),
             src,
+            pos: chars.peek().map(|(x, _)| *x).unwrap_or_default(),
             chars,
         }
     }
 
-    pub fn lex(&mut self) -> Vec<Token> {
+    pub fn eval(&mut self) {
+        let tokens = self.lex();
+        println!("{:#?}", tokens);
+    }
+
+    fn lex(&mut self) -> Vec<Token> {
         let mut token_stream: Vec<Token> = vec![];
 
         while self.peek().is_some() {
-            let token = self.advance().unwrap();
-            token_stream.push(token);
+            if let Some(token) = self.advance() {
+                token_stream.push(token);
+            }
         }
 
         token_stream
     }
 
-    fn bump(&mut self) -> Option<char> {
-        self.chars.next().map(|(_, x)| x)
+    fn next(&mut self) -> Option<char> {
+        self.chars.next().map(|(_, ch)| ch)
     }
 
     fn peek(&mut self) -> Option<char> {
-        self.chars.peek().map(|(_, x)| *x)
+        self.chars.peek().map(|(_, ch)| *ch)
     }
 
     fn eat_while<F>(&mut self, f: F)
@@ -54,7 +60,7 @@ impl Scanner {
         F: Fn(char) -> bool,
     {
         while self.peek().is_some() && f(self.peek().unwrap()) {
-            self.bump();
+            self.next();
         }
     }
 
@@ -64,28 +70,30 @@ impl Scanner {
     }
 
     fn cur_pos(&mut self) -> usize {
-        self.chars.peek().map(|(x, _)| *x).unwrap_or(self.src.len())
+        self.chars
+            .peek()
+            .map(|(idx, _)| *idx)
+            .unwrap_or(self.src.len())
     }
 
-    fn advance(&mut self) -> Result<Token, CalrlError> {
-        // Remove whitespace
-        self.eat_while(|x| matches!(x, ' ' | '\t' | '\n' | '\r'));
+    fn advance(&mut self) -> Option<Token> {
+        self.eat_while(|ch| ch.is_whitespace());
         self.pos = self.cur_pos();
-        let next_char = if let Some(c) = self.bump() {
-            c
-        } else {
-            return Ok(Token::Eol);
-        };
 
-        match next_char {
-            x if x.is_ascii_digit() => {
-                self.eat_while(|x| x.is_ascii_digit());
+        let next_char = self.next().unwrap_or_default();
+
+        Some(match next_char {
+            ch if ch.is_ascii_digit() => {
+                self.eat_while(|ch| ch.is_ascii_digit());
                 let num = self.slice();
 
-                Ok(Token::Number(num.into()))
+                Token::Number(num.into())
             }
-            x if OPS.contains(x) => Ok(Token::Operator(x.into())),
-            _ => Err(CalrlError::UnexpectedChar(next_char, self.cur_pos())),
-        }
+            ch if OPS.contains(ch) => Token::Operator(ch.into()),
+            '(' => Token::ParanStart,
+            ')' => Token::ParanEnd,
+            '=' => Token::Equals,
+            _ => return None,
+        })
     }
 }
