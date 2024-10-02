@@ -1,16 +1,6 @@
 use std::{iter::Peekable, str::CharIndices};
 
-const OPS: &str = "+-/*";
-
-#[allow(dead_code)]
-#[derive(Debug)]
-pub enum Token {
-    Number(String),
-    Operator(String),
-    Equals,
-    ParanStart,
-    ParanEnd,
-}
+use crate::types::{errors::CalrlError, token::Token};
 
 #[derive(Debug)]
 pub struct Scanner<'a> {
@@ -30,16 +20,11 @@ impl<'a> Scanner<'a> {
         }
     }
 
-    pub fn eval(&mut self) {
-        let tokens = self.lex();
-        println!("{:#?}", tokens);
-    }
-
-    fn lex(&mut self) -> Vec<Token> {
+    pub fn lex(&mut self) -> Vec<Token> {
         let mut token_stream: Vec<Token> = vec![];
 
         while self.peek().is_some() {
-            if let Some(token) = self.advance() {
+            if let Ok(token) = self.advance() {
                 token_stream.push(token);
             }
         }
@@ -76,24 +61,31 @@ impl<'a> Scanner<'a> {
             .unwrap_or(self.src.len())
     }
 
-    fn advance(&mut self) -> Option<Token> {
+    fn advance(&mut self) -> Result<Token, CalrlError> {
         self.eat_while(|ch| ch.is_whitespace());
         self.pos = self.cur_pos();
 
         let next_char = self.next().unwrap_or_default();
 
-        Some(match next_char {
+        Ok(match next_char {
             ch if ch.is_ascii_digit() => {
                 self.eat_while(|ch| ch.is_ascii_digit());
-                let num = self.slice();
+                let num_str = self.slice();
+                let num = num_str.parse::<i32>();
 
-                Token::Number(num.into())
+                match num {
+                    Ok(n) => Token::Number(n),
+                    Err(_) => return Err(CalrlError::ParseIntError),
+                }
             }
-            ch if OPS.contains(ch) => Token::Operator(ch.into()),
+            '+' => Token::Plus,
+            '-' => Token::Minus,
+            '*' => Token::Multiply,
+            '/' => Token::Divide,
             '(' => Token::ParanStart,
             ')' => Token::ParanEnd,
             '=' => Token::Equals,
-            _ => return None,
+            _ => Token::Eol,
         })
     }
 }
