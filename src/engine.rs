@@ -1,4 +1,4 @@
-use crate::types::{errors::CalrlError, token::Token};
+use crate::types::{errors::CalrlError, exp_group::ExpGroup, token::Token};
 
 #[derive(Debug)]
 pub struct Engine {
@@ -16,8 +16,8 @@ impl Engine {
         Ok(0)
     }
 
-    fn group(&self) -> Vec<Vec<Token>> {
-        let groups: Vec<Vec<Token>> = vec![];
+    fn group(&self) -> Vec<ExpGroup> {
+        let groups: Vec<ExpGroup> = vec![];
         // for (idx, token) in self.tokens.iter().enumerate() {
         //     match token {
         //         Token::Number(_) => todo!(),

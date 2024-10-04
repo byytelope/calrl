@@ -1,6 +1,9 @@
 use std::{iter::Peekable, str::CharIndices};
 
-use crate::types::{errors::CalrlError, token::Token};
+use crate::types::{
+    errors::CalrlError,
+    token::{Operation, Token},
+};
 
 #[derive(Debug)]
 pub struct Scanner<'a> {
@@ -78,10 +81,10 @@ impl<'a> Scanner<'a> {
                     Err(_) => return Err(CalrlError::ParseIntError),
                 }
             }
-            '+' => Token::Plus,
-            '-' => Token::Minus,
-            '*' => Token::Multiply,
-            '/' => Token::Divide,
+            '+' => Token::Operator(Operation::Add),
+            '-' => Token::Operator(Operation::Subtract),
+            '*' => Token::Operator(Operation::Multiply),
+            '/' => Token::Operator(Operation::Divide),
             '(' => Token::ParanStart,
             ')' => Token::ParanEnd,
             '=' => Token::Equals,

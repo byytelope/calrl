@@ -2,12 +2,17 @@
 #[derive(Debug)]
 pub enum Token {
     Number(i32),
-    Plus,
-    Minus,
-    Divide,
-    Multiply,
+    Operator(Operation),
     Equals,
     ParanStart,
     ParanEnd,
     Eol,
+}
+
+#[derive(Debug)]
+pub enum Operation {
+    Add,
+    Subtract,
+    Divide,
+    Multiply,
 }
