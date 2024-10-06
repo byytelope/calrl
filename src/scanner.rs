@@ -74,7 +74,7 @@ impl<'a> Scanner<'a> {
             ch if ch.is_ascii_digit() => {
                 self.eat_while(|ch| ch.is_ascii_digit());
                 let num_str = self.slice();
-                let num = num_str.parse::<i32>();
+                let num = num_str.parse::<f32>();
 
                 match num {
                     Ok(n) => Token::Number(n),
@@ -87,8 +87,7 @@ impl<'a> Scanner<'a> {
             '/' => Token::Operator(Operation::Divide),
             '(' => Token::ParanStart,
             ')' => Token::ParanEnd,
-            '=' => Token::Equals,
-            _ => Token::Eol,
+            _ => return Err(CalrlError::InvalidCharacter),
         })
     }
 }

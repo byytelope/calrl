@@ -1,15 +1,13 @@
 #[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum Token {
-    Number(i32),
+    Number(f32),
     Operator(Operation),
-    Equals,
     ParanStart,
     ParanEnd,
-    Eol,
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum Operation {
     Add,
     Subtract,

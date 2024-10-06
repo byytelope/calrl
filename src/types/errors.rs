@@ -3,4 +3,5 @@
 pub enum CalrlError {
     EvalError,
     ParseIntError,
+    InvalidCharacter,
 }
