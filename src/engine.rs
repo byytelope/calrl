@@ -16,6 +16,7 @@ impl Engine {
     pub fn eval(&self) -> Result<f32, CalrlError> {
         let mut stack: Vec<f32> = vec![];
         let shunted = self.shunt();
+        println!("SHUNTED: {shunted:?}");
 
         for token in shunted {
             match token {

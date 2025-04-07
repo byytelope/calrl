@@ -72,7 +72,7 @@ impl<'a> Scanner<'a> {
 
         Ok(match next_char {
             ch if ch.is_ascii_digit() => {
-                self.eat_while(|ch| ch.is_ascii_digit());
+                self.eat_while(|ch| ch.is_ascii_digit() || ch == '.');
                 let num_str = self.slice();
                 let num = num_str.parse::<f32>();
 
